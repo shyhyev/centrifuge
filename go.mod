@@ -1,4 +1,4 @@
-module github.com/centrifugal/centrifuge
+module github.com/shyhyev/centrifuge
 
 go 1.20
 
