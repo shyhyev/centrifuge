@@ -41,6 +41,11 @@ type RedisPresenceManagerConfig struct {
 	// means 60 seconds.
 	PresenceTTL time.Duration
 
+	// LastActivityTTL is an interval how long to consider presence info
+	// valid after receiving last activity update. Zero value
+	// means 1 year.
+	LastActivityTTL time.Duration
+
 	// Shards is a slice of RedisShard to use. At least one shard must be provided.
 	// Data will be consistently sharded by channel over provided Redis shards.
 	Shards []*RedisShard
@@ -86,6 +91,10 @@ func NewRedisPresenceManager(n *Node, config RedisPresenceManagerConfig) (*Redis
 		config.PresenceTTL = 60 * time.Second
 	}
 
+	if config.LastActivityTTL == 0 {
+		config.LastActivityTTL = 365 * 24 * time.Hour
+	}
+
 	m := &RedisPresenceManager{
 		node:     n,
 		shards:   config.Shards,
@@ -117,6 +126,7 @@ func (m *RedisPresenceManager) AddPresence(ch string, uid string, info *ClientIn
 }
 
 func (m *RedisPresenceManager) addPresenceScriptKeysArgs(s *RedisShard, ch string, uid string, info *ClientInfo) ([]string, []string, error) {
+	lastActivityExpire := int(m.config.LastActivityTTL.Seconds())
 	expire := int(m.config.PresenceTTL.Seconds())
 	infoBytes, err := infoToProto(info).MarshalVT()
 	if err != nil {
@@ -133,7 +143,7 @@ func (m *RedisPresenceManager) addPresenceScriptKeysArgs(s *RedisShard, ch strin
 	now := time.Now().Unix()
 	expireAt := now + int64(expire)
 	useUserMapping := m.useUserMappingArg(ch)
-	args := []string{strconv.Itoa(expire), strconv.FormatInt(expireAt, 10), uid, convert.BytesToString(infoBytes), info.UserID, useUserMapping, strconv.Itoa(int(now))}
+	args := []string{strconv.Itoa(expire), strconv.FormatInt(expireAt, 10), uid, convert.BytesToString(infoBytes), info.UserID, useUserMapping, strconv.Itoa(int(now)), strconv.Itoa(lastActivityExpire)}
 
 	return keys, args, nil
 }

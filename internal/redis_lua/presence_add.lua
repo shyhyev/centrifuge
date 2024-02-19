@@ -19,9 +19,10 @@ end
 -- Add per-client presence.
 redis.call("zadd", KEYS[1], ARGV[2], ARGV[3])
 redis.call("hset", KEYS[2], ARGV[3], ARGV[4])
+redis.call("hset", KEYS[5], 'last_activity', ARGV[7])
 redis.call("expire", KEYS[1], ARGV[1])
 redis.call("expire", KEYS[2], ARGV[1])
-redis.call("hset", KEYS[5], 'last_activity', ARGV[7])
+redis.call("expire", KEYS[5], ARGV[8])
 
 -- Add per-user information.
 if ARGV[6] ~= '0' then
