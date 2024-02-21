@@ -137,7 +137,7 @@ func (m *RedisPresenceManager) addPresenceScriptKeysArgs(s *RedisShard, ch strin
 	hashKey := m.presenceHashKey(s, ch)
 	userSetKey := m.userSetKey(s, ch)
 	userHashKey := m.userHashKey(s, ch)
-	lastActivityKey := m.userLastActivityHashKey(s, ch)
+	lastActivityKey := m.presenceLastActivityHashKey(s, ch)
 	keys := []string{string(setKey), string(hashKey), string(userSetKey), string(userHashKey), string(lastActivityKey)}
 
 	now := time.Now().Unix()
@@ -347,9 +347,9 @@ func (m *RedisPresenceManager) userHashKey(s *RedisShard, ch string) channelID {
 	return channelID(m.config.Prefix + ".presence.user.clients." + ch)
 }
 
-func (m *RedisPresenceManager) userLastActivityHashKey(s *RedisShard, ch string) channelID {
+func (m *RedisPresenceManager) presenceLastActivityHashKey(s *RedisShard, ch string) channelID {
 	if s.useCluster {
 		ch = "{" + ch + "}"
 	}
-	return channelID(m.config.Prefix + ".presence.user.last_activity." + ch)
+	return channelID(m.config.Prefix + ".presence.last_activity." + ch)
 }
